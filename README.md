@@ -33,7 +33,7 @@ As gate length ($L_g$) scales down, the source and drain depletion regions occup
 ## Methodology
 
 1. **Geometry (`mos_2d_create.py`)** — Defines a 2D cross-section of the device mesh with doping profiles representative of a scaled nanosheet/UTB structure, parametrized so that gate length can be swept from 100nm to 20nm without rebuilding the mesh from scratch.
-2. **Physics solve (`mos_2d.py`)** — Runs a DC gate-voltage sweep at fixed drain bias, solving the Poisson and drift-diffusion equations self-consistently at each mesh node. $V_{th}$ is extracted via the constant-current method on the $I_D$–$V_{GS}$ curve; SS is extracted from the slope of $\log_{10}(I_D)$ vs. $V_{GS}$ in the subthreshold region.
+2. **Physics solve (`mos_2d.py`)** — Runs a DC gate-voltage sweep at fixed drain bias, solving the Poisson and drift-diffusion equations self-consistently at each mesh node. $V_{th}$ is extracted via the constant-current method on the $I_D$ – $V_{GS}$ curve; SS is extracted from the slope of $\log_{10}(I_D)$ vs. $V_{GS}$ in the subthreshold region.
 3. **Visualization (`utils/mosfet_viz.html`)** — A standalone interactive tool (independent of the DEVSIM run) that illustrates the geometric mechanism behind the data: as $L_g$ shrinks, source/drain depletion width grows relative to channel length until the two regions overlap, flagging punch-through.
 
 ## Results
@@ -58,9 +58,6 @@ Full $I_D$ – $V_{GS}$ sweep curves for each gate length are in `results/`:
 
 This progression is exactly why planar bulk MOSFETs cannot scale below roughly the 20–30nm gate-length range, and why the industry moved to FinFET and now gate-all-around (GAA) nanosheet architectures: wrapping the gate around the channel on multiple sides suppresses depletion-region growth from the source/drain and restores electrostatic control, pushing the punch-through-limited $L_g$ to much smaller geometries than a planar device could achieve.
 
-## Visualization
-
-`utils/mosfet_viz.html` provides an interactive view of the mechanism described above — drag the gate-length slider and watch the depletion regions grow and merge, with live readouts for depletion width, effective channel length, and punch-through status. Open it directly in any browser (no server or build step required).
 
 ## Running the simulation
 
