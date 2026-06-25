@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MOSFET Short-Channel Effect & Punch-through Visualization</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f3f3f1;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b68;
+    --border: #d8d6d0;
+    --blue-50: #E6F1FB; --blue-600: #185FA5; --blue-800: #0C447C;
+    --coral-50: #FAECE7; --coral-600: #993C1D; --coral-800: #712B13;
+    --amber-50: #FAEEDA; --amber-200: #EF9F27; --amber-600: #854F0B;
+    --gray-50: #F1EFE8; --gray-600: #5F5E5A; --gray-800: #444441;
+    --red-50: #FCEBEB; --red-800: #791F1F;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg-secondary: #2a2a27;
+      --text-primary: #efeee8;
+      --text-secondary: #a3a199;
+      --border: #45443f;
+      --blue-50: #042C53; --blue-600: #378ADD; --blue-800: #B5D4F4;
+      --coral-50: #4A1B0C; --coral-600: #D85A30; --coral-800: #F5C4B3;
+      --amber-50: #412402; --amber-200: #EF9F27; --amber-600: #FAC775;
+      --gray-50: #2C2C2A; --gray-600: #888780; --gray-800: #D3D1C7;
+      --red-50: #501313; --red-800: #F7C1C1;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  p.sub { color: var(--text-secondary); font-size: 14px; margin-top: 0; margin-bottom: 24px; }
+
+  svg { width: 100%; height: auto; display: block; }
+  text { font-family: inherit; fill: var(--text-primary); }
+  .t  { font-size: 14px; }
+  .ts { font-size: 12px; fill: var(--text-secondary); }
+  .th { font-size: 14px; font-weight: 500; }
+
+  .c-blue rect, .c-blue text  { fill: var(--blue-50); }
+  .c-blue rect { stroke: var(--blue-600); }
+  .c-blue text { fill: var(--blue-800); }
+
+  .c-coral rect, .c-coral text { fill: var(--coral-50); }
+  .c-coral rect { stroke: var(--coral-600); }
+  .c-coral text { fill: var(--coral-800); }
+
+  .c-gray rect, .c-gray text { fill: var(--gray-50); }
+  .c-gray rect { stroke: var(--gray-600); }
+  .c-gray text { fill: var(--gray-800); }
+
+  .c-amber ellipse { fill: var(--amber-200); opacity: 0.35; stroke: var(--amber-600); stroke-width: 0.5; }
+
+  .conv { transition: all 0.25s ease; }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .controls-row label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  input[type=range] {
+    flex: 1;
+    width: 100%;
+    accent-color: var(--blue-600);
+  }
+  #lg-value {
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 56px;
+    text-align: right;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 1rem;
+  }
+  .stat-card {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); }
+  .stat-value { font-size: 20px; font-weight: 500; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<h1>MOSFET short-channel effect &amp; punch-through</h1>
+<p class="sub">Drag the slider to shrink the gate length and watch the source/drain depletion regions grow until they merge.</p>
+
+<svg viewBox="0 0 680 360" id="mosfet-svg" role="img" aria-label="Cross-section diagram of a MOSFET showing source, drain, gate, and depletion regions that grow as gate length decreases">
+
+  <rect x="60" y="160" width="560" height="100" fill="none" stroke="var(--text-secondary)" stroke-width="0.5" opacity="0.3"/>
+  <text class="ts" x="68" y="174">p-type substrate</text>
+
+  <g id="dep-s" class="c-amber conv">
+    <ellipse cx="180" cy="210" rx="20" ry="46"/>
+  </g>
+  <g id="dep-d" class="c-amber conv">
+    <ellipse cx="500" cy="210" rx="20" ry="46"/>
+  </g>
+
+  <g id="source" class="c-blue">
+    <rect x="120" y="170" width="60" height="80" rx="4" stroke-width="1"/>
+    <text class="th" x="150" y="210" text-anchor="middle" dominant-baseline="central">Source</text>
+  </g>
+  <g id="drain" class="c-coral">
+    <rect x="500" y="170" width="60" height="80" rx="4" stroke-width="1"/>
+    <text class="th" x="530" y="210" text-anchor="middle" dominant-baseline="central">Drain</text>
+  </g>
+
+  <rect id="gate-ox" x="240" y="150" width="200" height="8" fill="var(--text-secondary)" opacity="0.4"/>
+  <g id="gate" class="c-gray">
+    <rect x="240" y="120" width="200" height="28" rx="3" stroke-width="1"/>
+    <text class="th" id="gate-label" x="340" y="134" text-anchor="middle" dominant-baseline="central">Gate</text>
+  </g>
+
+  <line id="ch-line" x1="180" y1="250" x2="500" y2="250" stroke="var(--text-primary)" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+
+  <g id="punch-banner" opacity="0">
+    <text class="th" x="340" y="290" text-anchor="middle" fill="#A32D2D">Punch-through: depletion regions merge</text>
+  </g>
+
+  <text class="ts" id="lg-readout" x="340" y="100" text-anchor="middle"></text>
+</svg>
+
+<div class="controls-row">
+  <label for="lg-slider">Gate length (L<sub>g</sub>)</label>
+  <input type="range" id="lg-slider" min="20" max="100" value="100" step="1">
+  <span id="lg-value">100 nm</span>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Depletion width</div>
+    <div id="dw-value" class="stat-value">15 nm</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Effective channel</div>
+    <div id="eff-value" class="stat-value">70 nm</div>
+  </div>
+  <div class="stat-card" id="status-card">
+    <div class="stat-label">Status</div>
+    <div id="status-value" class="stat-value">Normal</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const slider = document.getElementById('lg-slider');
+  const lgValue = document.getElementById('lg-value');
+  const lgReadout = document.getElementById('lg-readout');
+  const dwValue = document.getElementById('dw-value');
+  const effValue = document.getElementById('eff-value');
+  const statusValue = document.getElementById('status-value');
+  const statusCard = document.getElementById('status-card');
+  const punchBanner = document.getElementById('punch-banner');
+
+  const source = document.getElementById('source');
+  const drain = document.getElementById('drain');
+  const gate = document.getElementById('gate');
+  const gateOx = document.getElementById('gate-ox');
+  const gateLabel = document.getElementById('gate-label');
+  const depS = document.getElementById('dep-s').querySelector('ellipse');
+  const depD = document.getElementById('dep-d').querySelector('ellipse');
+  const chLine = document.getElementById('ch-line');
+
+  const CENTER = 340;
+
+  // Illustrative depletion-width model: grows as Lg shrinks.
+  // (Not derived from doping/voltage -- see note below for the physics-based version.)
+  function depletionWidth(lg) {
+    return 12 + (100 - lg) * 0.16;
+  }
+
+  function update(lgRaw) {
+    const lg = Math.round(lgRaw);
+    const scale = 2.2; // px per nm for the gate
+    const halfGate = (lg * scale) / 2;
+
+    const gx = CENTER - halfGate;
+    gate.querySelector('rect').setAttribute('x', gx);
+    gate.querySelector('rect').setAttribute('width', halfGate * 2);
+    gateLabel.setAttribute('x', CENTER);
+    gateOx.setAttribute('x', gx);
+    gateOx.setAttribute('width', halfGate * 2);
+
+    const srcRight = gx;
+    const drnLeft = CENTER + halfGate;
+    source.querySelector('rect').setAttribute('x', srcRight - 60);
+    source.querySelector('rect').setAttribute('width', 60);
+    source.querySelector('text').setAttribute('x', srcRight - 30);
+    drain.querySelector('rect').setAttribute('x', drnLeft);
+    drain.querySelector('rect').setAttribute('width', 60);
+    drain.querySelector('text').setAttribute('x', drnLeft + 30);
+
+    const junctionS = srcRight;
+    const junctionD = drnLeft;
+    chLine.setAttribute('x1', junctionS);
+    chLine.setAttribute('x2', junctionD);
+
+    const w = depletionWidth(lg);
+    const wPx = w * 1.8; // nm-to-px for the depletion ellipse radius
+    depS.setAttribute('cx', junctionS);
+    depS.setAttribute('rx', wPx);
+    depD.setAttribute('cx', junctionD);
+    depD.setAttribute('rx', wPx);
+
+    const channelLen = junctionD - junctionS;
+    const effectiveChannel = Math.max(0, lg - 2 * w);
+    const merged = wPx * 2 >= channelLen;
+
+    dwValue.textContent = w.toFixed(1) + ' nm';
+    effValue.textContent = Math.max(0, effectiveChannel).toFixed(0) + ' nm';
+    lgValue.textContent = lg + ' nm';
+    lgReadout.textContent = 'Lg = ' + lg + ' nm';
+
+    if (merged) {
+      statusValue.textContent = 'Punch-through';
+      statusValue.style.color = '#A32D2D';
+      statusCard.style.background = 'var(--red-50)';
+      punchBanner.setAttribute('opacity', '1');
+    } else if (effectiveChannel < lg * 0.3) {
+      statusValue.textContent = 'SCE onset';
+      statusValue.style.color = '#854F0B';
+      statusCard.style.background = 'var(--amber-50)';
+      punchBanner.setAttribute('opacity', '0');
+    } else {
+      statusValue.textContent = 'Normal';
+      statusValue.style.color = '';
+      statusCard.style.background = 'var(--bg-secondary)';
+      punchBanner.setAttribute('opacity', '0');
+    }
+  }
+
+  slider.addEventListener('input', (e) => update(e.target.value));
+  update(100);
+})();
+</script>
+
+</body>
+</html>
