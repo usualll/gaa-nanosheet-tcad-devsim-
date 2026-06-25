@@ -49,7 +49,7 @@ As gate length ($L_g$) scales down, the source and drain depletion regions occup
 - **100nm → 50nm:** $V_{th}$ shifts by 74 mV and SS degrades modestly (84.1 → 89.6 mV/dec). This is classical, gradual short-channel roll-off — the depletion regions are growing but still well separated from each other.
 - **50nm → 20nm:** $V_{th}$ shifts by a further 314 mV — more than 4x the previous step — while SS nearly doubles to 171.1 mV/dec, well above the room-temperature ideal limit of ~60 mV/dec. This disproportionate jump in both metrics is the simulation's signature of **punch-through**: the source and drain depletion regions have merged, the channel can no longer be fully depleted/controlled by the gate, and subthreshold leakage rises sharply. The 20nm point is not "more of the same scaling trend" as 100→50nm — it is a qualitatively different failure regime.
 
-Full $I_D$–$V_{GS}$ sweep curves for each gate length are in `results/`:
+Full $I_D$ – $V_{GS}$ sweep curves for each gate length are in `results/`:
 - `results/id_vg_curve_100nm.png`
 - `results/id_vg_curve_50nm.png`
 - `results/id_vg_curve_20nm.png`
